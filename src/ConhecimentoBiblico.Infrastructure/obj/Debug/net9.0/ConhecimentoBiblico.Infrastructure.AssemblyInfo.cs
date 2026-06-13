@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ConhecimentoBiblico.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+287405489b38f259d0705811b998c4a5bf18b694")]
 [assembly: System.Reflection.AssemblyProductAttribute("ConhecimentoBiblico.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ConhecimentoBiblico.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
