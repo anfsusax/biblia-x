@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\proj\\\\biblia-x\\\\docs\\\\superpowers\\\\specs\")",
+      "Bash(Out-Null)",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\proj\\\\biblia-x\\\\docs\\\\superpowers\\\\specs\")"
+    ]
+  }
+}

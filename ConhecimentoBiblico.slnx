@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ConhecimentoBiblico.Application/ConhecimentoBiblico.Application.csproj" />
+    <Project Path="src/ConhecimentoBiblico.Domain/ConhecimentoBiblico.Domain.csproj" />
+    <Project Path="src/ConhecimentoBiblico.Infrastructure/ConhecimentoBiblico.Infrastructure.csproj" />
+    <Project Path="src/ConhecimentoBiblico.Web/ConhecimentoBiblico.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ConhecimentoBiblico.UnitTests/ConhecimentoBiblico.UnitTests.csproj" />
+  </Folder>
+</Solution>
