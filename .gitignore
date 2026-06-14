@@ -1,0 +1,39 @@
+## .NET build artifacts
+bin/
+obj/
+out/
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## NuGet
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.nuget.cache
+
+## Test results
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+
+## Entity Framework migrations temp files
+*.EntityFrameworkCore.targets
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Secrets / environment
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+*.pfx
+*.p12
