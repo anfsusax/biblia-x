@@ -4,6 +4,7 @@ using ConhecimentoBiblico.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ConhecimentoBiblico.Infrastructure.Migrations
 {
     [DbContext(typeof(ConhecimentoBiblicoDbContext))]
-    partial class ConhecimentoBiblicoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260614205418_AdicionarCapitulo4ERelevancia")]
+    partial class AdicionarCapitulo4ERelevancia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -16,6 +16,8 @@ public class ConexaoBiblicaConfiguracao : IEntityTypeConfiguration<ConexaoBiblic
         builder.Property(c => c.Explicacao).IsRequired().HasMaxLength(2000);
         builder.Property(c => c.TipoConexao).IsRequired();
 
+        builder.Property(c => c.Relevancia).IsRequired().HasDefaultValue(5);
+
         builder.HasOne(c => c.Origem).WithMany()
             .HasForeignKey(c => c.OrigemId).OnDelete(DeleteBehavior.Restrict);
 
@@ -42,12 +44,20 @@ public class ConexaoBiblicaConfiguracao : IEntityTypeConfiguration<ConexaoBiblic
         });
 
         builder.HasData(
-            new { Id = DadosIniciais.IdConexaoJonasJesus,         OrigemId = DadosIniciais.IdJonas,         DestinoId = DadosIniciais.IdJesus,  TipoConexao = TipoConexao.PrefiguraCristo,  Explicacao = "Jonas ficou 3 dias no ventre do peixe, prefigurando os 3 dias de Jesus no sepulcro e Sua ressurreição." },
-            new { Id = DadosIniciais.IdConexaoMoisesJesus,         OrigemId = DadosIniciais.IdMoises,        DestinoId = DadosIniciais.IdJesus,  TipoConexao = TipoConexao.PrefiguraCristo,  Explicacao = "Moisés como mediador da antiga aliança prefigura Cristo, mediador da nova e eterna aliança." },
-            new { Id = DadosIniciais.IdConexaoDaviJesus,           OrigemId = DadosIniciais.IdDavi,          DestinoId = DadosIniciais.IdJesus,  TipoConexao = TipoConexao.ApontaParaCristo, Explicacao = "O trono eterno prometido a Davi aponta para o reino eterno de Jesus Cristo." },
-            new { Id = DadosIniciais.IdConexaoJonasCitadoPorJesus, OrigemId = DadosIniciais.IdJonas,         DestinoId = DadosIniciais.IdJesus,  TipoConexao = TipoConexao.CitadoPorJesus,   Explicacao = "Jesus citou Jonas explicitamente ao responder sobre o sinal do Filho do Homem (Mt 12:39-40)." },
-            new { Id = DadosIniciais.IdConexaoCasamentoPaulo,      OrigemId = DadosIniciais.IdTemaCasamento, DestinoId = DadosIniciais.IdPaulo,  TipoConexao = TipoConexao.ExplicadoPor,     Explicacao = "Paulo ensina que o casamento é reflexo da relação de Cristo com a Igreja em Efésios 5:25-32." },
-            new { Id = DadosIniciais.IdConexaoPerdaoPaulo,         OrigemId = DadosIniciais.IdTemaPerdao,    DestinoId = DadosIniciais.IdPaulo,  TipoConexao = TipoConexao.ExplicadoPor,     Explicacao = "Paulo explica o perdão como graça de Deus em Cristo, exortando os crentes a perdoarem uns aos outros." }
+            // Conexões tipológicas existentes
+            new { Id = DadosIniciais.IdConexaoJonasJesus,         OrigemId = DadosIniciais.IdJonas,               DestinoId = DadosIniciais.IdJesus,             TipoConexao = TipoConexao.PrefiguraCristo,        Explicacao = "Jonas ficou 3 dias no ventre do peixe, prefigurando os 3 dias de Jesus no sepulcro e Sua ressurreição.", Relevancia = 9 },
+            new { Id = DadosIniciais.IdConexaoMoisesJesus,         OrigemId = DadosIniciais.IdMoises,              DestinoId = DadosIniciais.IdJesus,             TipoConexao = TipoConexao.PrefiguraCristo,        Explicacao = "Moisés como mediador da antiga aliança prefigura Cristo, mediador da nova e eterna aliança.", Relevancia = 9 },
+            new { Id = DadosIniciais.IdConexaoDaviJesus,           OrigemId = DadosIniciais.IdDavi,                DestinoId = DadosIniciais.IdJesus,             TipoConexao = TipoConexao.ApontaParaCristo,       Explicacao = "O trono eterno prometido a Davi aponta para o reino eterno de Jesus Cristo.", Relevancia = 8 },
+            new { Id = DadosIniciais.IdConexaoJonasCitadoPorJesus, OrigemId = DadosIniciais.IdJonas,               DestinoId = DadosIniciais.IdJesus,             TipoConexao = TipoConexao.CitadoPorJesus,         Explicacao = "Jesus citou Jonas explicitamente ao responder sobre o sinal do Filho do Homem (Mt 12:39-40).", Relevancia = 7 },
+            new { Id = DadosIniciais.IdConexaoCasamentoPaulo,      OrigemId = DadosIniciais.IdTemaCasamento,       DestinoId = DadosIniciais.IdPaulo,             TipoConexao = TipoConexao.ExplicadoPor,           Explicacao = "Paulo ensina que o casamento é reflexo da relação de Cristo com a Igreja em Efésios 5:25-32.", Relevancia = 7 },
+            new { Id = DadosIniciais.IdConexaoPerdaoPaulo,         OrigemId = DadosIniciais.IdTemaPerdao,          DestinoId = DadosIniciais.IdPaulo,             TipoConexao = TipoConexao.ExplicadoPor,           Explicacao = "Paulo explica o perdão como graça de Deus em Cristo, exortando os crentes a perdoarem uns aos outros.", Relevancia = 7 },
+
+            // Capítulo 04 — Batismo e Deserto
+            new { Id = DadosIniciais.IdConexaoBatismoJesus,        OrigemId = DadosIniciais.IdEventoBatismo,       DestinoId = DadosIniciais.IdJesus,             TipoConexao = TipoConexao.RelacionadoAoPersonagem, Explicacao = "Jesus é o protagonista do batismo. É sobre Ele que o Espírito desce e o Pai fala (Mateus 3.16-17).", Relevancia = 10 },
+            new { Id = DadosIniciais.IdConexaoBatismoJoaoBatista,  OrigemId = DadosIniciais.IdEventoBatismo,       DestinoId = DadosIniciais.IdJoaoBatista,       TipoConexao = TipoConexao.RelacionadoAoPersonagem, Explicacao = "João Batista administra o batismo de Jesus, cumprindo seu papel de precursor e preparador do caminho (Mateus 3.13-15).", Relevancia = 8 },
+            new { Id = DadosIniciais.IdConexaoBatismoFe,           OrigemId = DadosIniciais.IdEventoBatismo,       DestinoId = DadosIniciais.IdTemaFe,            TipoConexao = TipoConexao.RelacionadoAoTema,       Explicacao = "O batismo de Jesus é ato de fé e obediência — cumprimento de toda a justiça (Mateus 3.15).", Relevancia = 7 },
+            new { Id = DadosIniciais.IdConexaoDesertJesus,         OrigemId = DadosIniciais.IdEventoTentacaoDeserto, DestinoId = DadosIniciais.IdJesus,           TipoConexao = TipoConexao.RelacionadoAoPersonagem, Explicacao = "Jesus é levado ao deserto pelo Espírito e enfrenta pessoalmente as tentações do diabo por 40 dias (Mateus 4.1).", Relevancia = 10 },
+            new { Id = DadosIniciais.IdConexaoDesertFe,            OrigemId = DadosIniciais.IdEventoTentacaoDeserto, DestinoId = DadosIniciais.IdTemaFe,          TipoConexao = TipoConexao.RelacionadoAoTema,       Explicacao = "A tentação no deserto demonstra que Jesus venceu pela fé na Palavra de Deus, citando as Escrituras em cada resposta (Mateus 4.4, 4.7, 4.10).", Relevancia = 8 }
         );
     }
 }

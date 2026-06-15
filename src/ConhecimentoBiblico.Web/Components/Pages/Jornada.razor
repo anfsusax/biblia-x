@@ -1,0 +1,479 @@
+@page "/jornada"
+@rendermode InteractiveServer
+
+@using ConhecimentoBiblico.Domain.Conhecimento
+@using ConhecimentoBiblico.Infrastructure.Data
+@using ConhecimentoBiblico.Infrastructure.Data.Seed
+@using Microsoft.EntityFrameworkCore
+
+@inject ConhecimentoBiblicoDbContext Db
+
+<PageTitle>Jornada de Jesus</PageTitle>
+
+<div class="jornada-header">
+    <h1>Jornada de Jesus Cristo</h1>
+    <div class="capitulo-badge">Capítulo 04 — Batismo e Deserto</div>
+</div>
+
+@if (_carregando)
+{
+    <div class="skeleton-page">
+        <div class="skeleton-header">
+            <div class="skeleton-bar w-40"></div>
+            <div class="skeleton-bar w-20"></div>
+        </div>
+        <div class="skeleton-grid">
+            <div class="skeleton-coluna">
+                <div class="skeleton-coluna-title"></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-bar w-90"></div><div class="skeleton-bar w-75"></div></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-50"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-65"></div></div>
+            </div>
+            <div class="skeleton-coluna">
+                <div class="skeleton-coluna-title"></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-70"></div><div class="skeleton-bar w-85"></div></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-55"></div><div class="skeleton-bar w-75"></div></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-40"></div><div class="skeleton-bar w-90"></div></div>
+            </div>
+            <div class="skeleton-coluna">
+                <div class="skeleton-coluna-title"></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-65"></div><div class="skeleton-bar w-80"></div></div>
+                <div class="skeleton-card"><div class="skeleton-bar w-45"></div><div class="skeleton-bar w-70"></div></div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="jornada-grid">
+
+        <div class="coluna">
+            <div class="coluna-header eventos-header">
+                <span class="coluna-icone">⚡</span>
+                <h2>Eventos</h2>
+                <span class="coluna-contagem">@_eventos.Count</span>
+            </div>
+            @foreach (var evento in _eventos)
+            {
+                <div class="card evento-card @(evento.ElementoCentral ? "central" : "")">
+                    @if (evento.ElementoCentral)
+                    {
+                        <div class="central-badge">Central</div>
+                    }
+                    <h3>@evento.Nome</h3>
+                    <p>@evento.Descricao</p>
+                </div>
+            }
+            @if (!_eventos.Any())
+            {
+                <div class="vazio">Nenhum evento encontrado.</div>
+            }
+        </div>
+
+        <div class="coluna">
+            <div class="coluna-header pessoas-header">
+                <span class="coluna-icone">👤</span>
+                <h2>Pessoas</h2>
+                <span class="coluna-contagem">@_pessoas.Count</span>
+            </div>
+            @foreach (var pessoa in _pessoas)
+            {
+                <div class="card pessoa-card @(pessoa.ElementoCentral ? "central" : "")">
+                    @if (pessoa.ElementoCentral)
+                    {
+                        <div class="central-badge">Central</div>
+                    }
+                    <h3>@pessoa.Nome</h3>
+                    <p>@pessoa.Descricao</p>
+                    @if (!string.IsNullOrEmpty(pessoa.Ocupacao))
+                    {
+                        <span class="tag">@pessoa.Ocupacao</span>
+                    }
+                </div>
+            }
+            @if (!_pessoas.Any())
+            {
+                <div class="vazio">Nenhuma pessoa encontrada.</div>
+            }
+        </div>
+
+        <div class="coluna">
+            <div class="coluna-header conceitos-header">
+                <span class="coluna-icone">💡</span>
+                <h2>Conceitos</h2>
+                <span class="coluna-contagem">@_temas.Count</span>
+            </div>
+            @foreach (var tema in _temas)
+            {
+                <div class="card conceito-card">
+                    <h3>@tema.Nome</h3>
+                    <p>@tema.Descricao</p>
+                </div>
+            }
+            @if (!_temas.Any())
+            {
+                <div class="vazio">Nenhum conceito encontrado.</div>
+            }
+        </div>
+
+    </div>
+
+    <div class="conexoes-section">
+        <h2>Conexões do Capítulo</h2>
+        <div class="conexoes-grid">
+            @foreach (var conexao in _conexoes)
+            {
+                <div class="conexao-card">
+                    <span class="conexao-origem">@(conexao.Origem?.Nome ?? "—")</span>
+                    <span class="conexao-tipo">@FormatarTipoConexao(conexao.TipoConexao)</span>
+                    <span class="conexao-destino">@(conexao.Destino?.Nome ?? "—")</span>
+                    <div class="conexao-explicacao">@conexao.Explicacao</div>
+                    <div class="relevancia">
+                        @for (int i = 1; i <= 10; i++)
+                        {
+                            <span class="relevancia-dot @(i <= conexao.Relevancia ? "ativo" : "")"></span>
+                        }
+                        <span class="relevancia-label">@conexao.Relevancia/10</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<style>
+    .jornada-header {
+        margin-bottom: 2rem;
+    }
+
+    .jornada-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--bs-body-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .capitulo-badge {
+        display: inline-block;
+        background: #6366f1;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .jornada-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .coluna-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid;
+    }
+
+    .coluna-header h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+        flex: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .eventos-header { border-color: #f59e0b; color: #f59e0b; }
+    .pessoas-header  { border-color: #3b82f6; color: #3b82f6; }
+    .conceitos-header{ border-color: #10b981; color: #10b981; }
+
+    .coluna-icone { font-size: 1.1rem; }
+
+    .coluna-contagem {
+        background: #e5e7eb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        margin-bottom: 0.75rem;
+        position: relative;
+        background: white;
+    }
+
+    .card.central {
+        border-left: 3px solid #6366f1;
+    }
+
+    .card h3 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin: 0 0 0.4rem 0;
+        color: #111827;
+    }
+
+    .card p {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .central-badge {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: #6366f1;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.15rem 0.4rem;
+        border-radius: 999px;
+        text-transform: uppercase;
+    }
+
+    .tag {
+        display: inline-block;
+        margin-top: 0.4rem;
+        background: #f3f4f6;
+        color: #374151;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+    }
+
+    .vazio {
+        color: #9ca3af;
+        font-size: 0.85rem;
+        font-style: italic;
+        padding: 0.5rem 0;
+    }
+
+    .conexoes-section {
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1.5rem;
+    }
+
+    .conexoes-section h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .conexoes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1rem;
+    }
+
+    .conexao-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        background: #fafafa;
+    }
+
+    .conexao-origem, .conexao-destino {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #111827;
+    }
+
+    .conexao-tipo {
+        display: inline-block;
+        margin: 0 0.4rem;
+        background: #ede9fe;
+        color: #5b21b6;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+    }
+
+    .conexao-explicacao {
+        margin-top: 0.5rem;
+        font-size: 0.78rem;
+        color: #6b7280;
+        line-height: 1.4;
+    }
+
+    .relevancia {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        margin-top: 0.5rem;
+    }
+
+    .relevancia-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #e5e7eb;
+    }
+
+    .relevancia-dot.ativo {
+        background: #6366f1;
+    }
+
+    .relevancia-label {
+        margin-left: 0.3rem;
+        font-size: 0.7rem;
+        color: #9ca3af;
+    }
+
+    /* Skeleton loader */
+    @@keyframes shimmer {
+        0%   { background-position: -600px 0; }
+        100% { background-position: 600px 0; }
+    }
+
+    .skeleton-page {
+        padding-top: 0.5rem;
+    }
+
+    .skeleton-header {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .skeleton-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    .skeleton-coluna {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .skeleton-coluna-title {
+        height: 14px;
+        width: 40%;
+        border-radius: 4px;
+        margin-bottom: 0.25rem;
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 600px 100%;
+        animation: shimmer 1.4s infinite linear;
+    }
+
+    .skeleton-card {
+        border: 1px solid #f3f4f6;
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .skeleton-bar {
+        height: 12px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 600px 100%;
+        animation: shimmer 1.4s infinite linear;
+    }
+
+    .skeleton-bar.w-20 { width: 20%; }
+    .skeleton-bar.w-40 { width: 40%; }
+    .skeleton-bar.w-45 { width: 45%; }
+    .skeleton-bar.w-50 { width: 50%; }
+    .skeleton-bar.w-55 { width: 55%; }
+    .skeleton-bar.w-60 { width: 60%; }
+    .skeleton-bar.w-65 { width: 65%; }
+    .skeleton-bar.w-70 { width: 70%; }
+    .skeleton-bar.w-75 { width: 75%; }
+    .skeleton-bar.w-80 { width: 80%; }
+    .skeleton-bar.w-85 { width: 85%; }
+    .skeleton-bar.w-90 { width: 90%; }
+
+    @@media (max-width: 768px) {
+        .skeleton-grid { grid-template-columns: 1fr; }
+    }
+    /* fim skeleton */
+
+    @@media (max-width: 768px) {
+        .jornada-grid {
+            grid-template-columns: 1fr;
+        }
+        .conexoes-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private bool _carregando = true;
+    private List<EventoBiblico> _eventos = [];
+    private List<PersonagemBiblico> _pessoas = [];
+    private List<TemaBiblico> _temas = [];
+    private List<ConexaoBiblica> _conexoes = [];
+
+    private static readonly List<Guid> _capituloEventoIds = new()
+    {
+        DadosIniciais.IdEventoBatismo,
+        DadosIniciais.IdEventoTentacaoDeserto
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _eventos = await Db.ElementosBiblicos
+            .OfType<EventoBiblico>()
+            .Where(e => _capituloEventoIds.Contains(e.Id))
+            .OrderBy(e => e.Nome)
+            .ToListAsync();
+
+        _conexoes = await Db.ConexoesBiblicas
+            .Include(c => c.Origem)
+            .Include(c => c.Destino)
+            .Where(c => _capituloEventoIds.Contains(c.OrigemId)
+                     || _capituloEventoIds.Contains(c.DestinoId))
+            .OrderByDescending(c => c.Relevancia)
+            .ToListAsync();
+
+        _pessoas = _conexoes
+            .SelectMany(c => new ElementoBiblico?[] { c.Origem, c.Destino })
+            .OfType<PersonagemBiblico>()
+            .DistinctBy(p => p.Id)
+            .OrderByDescending(p => p.ElementoCentral)
+            .ThenBy(p => p.Nome)
+            .ToList();
+
+        _temas = _conexoes
+            .SelectMany(c => new ElementoBiblico?[] { c.Origem, c.Destino })
+            .OfType<TemaBiblico>()
+            .DistinctBy(t => t.Id)
+            .OrderBy(t => t.Nome)
+            .ToList();
+
+        _carregando = false;
+    }
+
+    private static string FormatarTipoConexao(Domain.Conhecimento.Enums.TipoConexao tipo) => tipo switch
+    {
+        Domain.Conhecimento.Enums.TipoConexao.RelacionadoAoPersonagem => "envolve",
+        Domain.Conhecimento.Enums.TipoConexao.RelacionadoAoTema       => "revela",
+        Domain.Conhecimento.Enums.TipoConexao.PrefiguraCristo         => "prefigura",
+        Domain.Conhecimento.Enums.TipoConexao.ApontaParaCristo        => "aponta para",
+        Domain.Conhecimento.Enums.TipoConexao.CitadoPorJesus          => "citado por",
+        Domain.Conhecimento.Enums.TipoConexao.ExplicadoPor            => "explicado por",
+        Domain.Conhecimento.Enums.TipoConexao.CumprimentoDeProfecia   => "cumpre profecia",
+        _ => tipo.ToString()
+    };
+}
