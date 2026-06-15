@@ -12,9 +12,10 @@ public class ReflexaoBiblicaConfiguracao : IEntityTypeConfiguration<ReflexaoBibl
         builder.HasKey(r => r.Id);
 
         builder.Property(r => r.Titulo).IsRequired().HasMaxLength(200);
-        builder.Property(r => r.Explicacao).IsRequired().HasMaxLength(2000);
-        builder.Property(r => r.AplicacaoPratica).IsRequired().HasMaxLength(2000);
-        builder.Property(r => r.PerguntaReflexao).IsRequired().HasMaxLength(500);
+        builder.Property(r => r.Explicacao).HasMaxLength(2000);
+        builder.Property(r => r.AplicacaoPratica).HasMaxLength(2000);
+        builder.Property(r => r.PerguntaReflexao).HasMaxLength(500);
+        builder.Property(r => r.CriadoEm).IsRequired();
 
         builder.HasOne<PerguntaBiblica>()
             .WithMany(p => p.Reflexoes)

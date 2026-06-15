@@ -3,7 +3,21 @@
     "allow": [
       "Bash(New-Item -ItemType Directory -Force \"C:\\\\proj\\\\biblia-x\\\\docs\\\\superpowers\\\\specs\")",
       "Bash(Out-Null)",
-      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\proj\\\\biblia-x\\\\docs\\\\superpowers\\\\specs\")"
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\proj\\\\biblia-x\\\\docs\\\\superpowers\\\\specs\")",
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)",
+      "Bash(dotnet ef *)",
+      "Bash(Start-Process -FilePath \"dotnet\" -ArgumentList \"run\",\"--project\",\"src/ConhecimentoBiblico.Web\",\"--no-build\" -PassThru)",
+      "Bash(Select-Object Id)",
+      "Bash(Start-Sleep -Seconds 5)",
+      "Bash(Write-Output \"App iniciado\")",
+      "Bash(dotnet run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5166/jornada)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/jornada)",
+      "Bash(curl -s http://localhost:5041/jornada)",
+      "Bash(pkill -f \"ConhecimentoBiblico.Web\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5041/jornada)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5041/)"
     ]
   }
 }

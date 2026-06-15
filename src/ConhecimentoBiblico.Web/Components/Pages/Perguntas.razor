@@ -1,0 +1,767 @@
+@page "/perguntas"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+@using ConhecimentoBiblico.Domain.Ensino
+@using ConhecimentoBiblico.Domain.Ensino.Enums
+@using ConhecimentoBiblico.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject ConhecimentoBiblicoDbContext Db
+
+<PageTitle>Perguntas Bíblicas</PageTitle>
+
+<div class="perguntas-header">
+    <div>
+        <h1>Perguntas Bíblicas</h1>
+        <p class="subtitulo">Perguntas que surgem durante o estudo. Capture agora, responda depois.</p>
+    </div>
+    <button type="button" class="btn-nova" @onclick="AbrirFormulario">+ Nova Pergunta</button>
+</div>
+
+@if (_formAberto)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nova Pergunta</h5>
+                    <button type="button" class="btn-close" aria-label="Fechar" @onclick="FecharFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="campo">
+                        <label>Título <span class="obrigatorio">*</span></label>
+                        <input class="form-control" @bind="_novaPergunta.Titulo" placeholder="Ex: Por que Jesus foi batizado?" />
+                    </div>
+                    <div class="campo mt-3">
+                        <label>Pergunta <span class="obrigatorio">*</span></label>
+                        <textarea class="form-control" @bind="_novaPergunta.Texto" rows="3"
+                                  placeholder="Descreva a dúvida com mais detalhes..."></textarea>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_erroPergunta))
+                    {
+                        <p class="erro mt-2">@_erroPergunta</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="FecharFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="SalvarPergunta">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show" @onclick="FecharFormulario"></div>
+}
+
+<div class="filtros">
+    @foreach (var status in _todosStatus)
+    {
+        <button type="button" class="filtro-btn @(_filtroAtivo == status ? "ativo" : "")"
+                @onclick="() => FiltrarPor(status)">
+            @LabelStatus(status)
+            <span class="filtro-count">@(status == null ? _todasPerguntas.Count : _contagens.GetValueOrDefault(status.Value, 0))</span>
+        </button>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(_erroCarregamento))
+{
+    <div class="erro-bloco">@_erroCarregamento</div>
+}
+
+@if (_carregando)
+{
+    <div class="skeleton-lista">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="skeleton-item">
+                <div class="skeleton-bar w-60"></div>
+                <div class="skeleton-bar w-90"></div>
+                <div class="skeleton-bar w-30"></div>
+            </div>
+        }
+    </div>
+}
+else if (_perguntasFiltradas.Count == 0)
+{
+    <div class="vazio">
+        @if (_filtroAtivo == null)
+        {
+            <p>Nenhuma pergunta registrada ainda.</p>
+            <p class="vazio-dica">Quando surgir uma dúvida durante o estudo, registre aqui.</p>
+        }
+        else
+        {
+            <p>Nenhuma pergunta com status "@LabelStatus(_filtroAtivo)".</p>
+        }
+    </div>
+}
+else
+{
+    <div class="lista-perguntas">
+        @foreach (var pergunta in _perguntasFiltradas)
+        {
+            <div class="pergunta-card @(pergunta.Id == _perguntaAberta ? "expandida" : "")"
+                 @onclick="() => ToggleDetalhe(pergunta.Id)" role="button">
+                <div class="pergunta-topo">
+                    <div class="pergunta-info">
+                        <span class="status-badge status-@pergunta.Status.ToString().ToLower()">
+                            @LabelStatus(pergunta.Status)
+                        </span>
+                        <h3>@pergunta.Titulo</h3>
+                        <p class="pergunta-texto">@pergunta.Pergunta</p>
+                    </div>
+                    <div class="pergunta-meta">
+                        <span class="data">@pergunta.CriadoEm.ToString("dd/MM/yyyy")</span>
+                        @if (_reflexoesPorPergunta.TryGetValue(pergunta.Id, out var contReflexoes) && contReflexoes.Count > 0)
+                        {
+                            <span class="reflexoes-count">@contReflexoes.Count reflexão(ões)</span>
+                        }
+                        <span class="chevron">@(pergunta.Id == _perguntaAberta ? "▲" : "▼")</span>
+                    </div>
+                </div>
+
+                @if (pergunta.Id == _perguntaAberta)
+                {
+                    <div class="pergunta-detalhe" @onclick:stopPropagation="true">
+
+                        @if (_reflexoesPorPergunta.TryGetValue(pergunta.Id, out var reflexoesDoPergunta) && reflexoesDoPergunta.Count > 0)
+                        {
+                            <div class="reflexoes-lista">
+                                <h4>Reflexões</h4>
+                                @foreach (var reflexao in reflexoesDoPergunta)
+                                {
+                                    <div class="reflexao-item">
+                                        <div class="reflexao-header">
+                                            <strong>@reflexao.Titulo</strong>
+                                            <span class="reflexao-data">@reflexao.CriadoEm.ToString("dd/MM/yyyy")</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(reflexao.Explicacao))
+                                        {
+                                            <p class="reflexao-texto">@reflexao.Explicacao</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(reflexao.AplicacaoPratica))
+                                        {
+                                            <p class="reflexao-aplicacao"><em>Aplicação:</em> @reflexao.AplicacaoPratica</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(reflexao.PerguntaReflexao))
+                                        {
+                                            <p class="reflexao-nova-pergunta">❓ @reflexao.PerguntaReflexao</p>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="acoes">
+                            @if (pergunta.Status != StatusPergunta.Respondida)
+                            {
+                                <button type="button" class="btn-acao btn-avancar"
+                                        @onclick="() => AvancarStatus(pergunta.Id)">
+                                    @(pergunta.Status == StatusPergunta.Pendente ? "Iniciar Estudo" : "Marcar como Respondida")
+                                </button>
+                            }
+                            <button type="button" class="btn-acao btn-reflexao"
+                                    @onclick="() => AbrirReflexao(pergunta.Id)">
+                                + Adicionar Reflexão
+                            </button>
+                        </div>
+
+                        @if (_reflexaoAbertaParaId == pergunta.Id)
+                        {
+                            <div class="form-reflexao">
+                                <h4>Nova Reflexão</h4>
+                                <div class="campo">
+                                    <label>Título <span class="obrigatorio">*</span></label>
+                                    <input @bind="_novaReflexao.Titulo" placeholder="Ex: O batismo como obediência" />
+                                </div>
+                                <div class="campo">
+                                    <label>Explicação <span class="opcional">(opcional)</span></label>
+                                    <textarea @bind="_novaReflexao.Explicacao" rows="3"
+                                              placeholder="O que você entendeu ou descobriu..."></textarea>
+                                </div>
+                                <div class="campo">
+                                    <label>Aplicação Prática <span class="opcional">(opcional)</span></label>
+                                    <textarea @bind="_novaReflexao.AplicacaoPratica" rows="2"
+                                              placeholder="Como isso afeta sua vida ou forma de pensar..."></textarea>
+                                </div>
+                                <div class="campo">
+                                    <label>Nova Pergunta Gerada <span class="opcional">(opcional)</span></label>
+                                    <input @bind="_novaReflexao.PerguntaReflexao"
+                                           placeholder="Qual dúvida essa reflexão gerou?" />
+                                </div>
+                                @if (!string.IsNullOrEmpty(_erroReflexao))
+                                {
+                                    <p class="erro">@_erroReflexao</p>
+                                }
+                                <div class="form-acoes">
+                                    <button type="button" class="btn-salvar" @onclick="() => SalvarReflexao(pergunta.Id)">Salvar</button>
+                                    <button type="button" class="btn-cancelar" @onclick="FecharReflexao">Cancelar</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .perguntas-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+    }
+
+    .perguntas-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .subtitulo {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .btn-nova {
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .btn-nova:hover { background: #4f46e5; }
+
+    .filtros {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filtro-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 999px;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        color: #374151;
+    }
+
+    .filtro-btn.ativo {
+        border-color: #6366f1;
+        background: #ede9fe;
+        color: #5b21b6;
+        font-weight: 600;
+    }
+
+    .filtro-count {
+        background: #f3f4f6;
+        border-radius: 999px;
+        padding: 0.05rem 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .filtro-btn.ativo .filtro-count {
+        background: #ddd6fe;
+    }
+
+    .lista-perguntas {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .pergunta-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background: white;
+        cursor: pointer;
+        transition: box-shadow 0.15s;
+    }
+
+    .pergunta-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .pergunta-card.expandida { border-color: #a5b4fc; }
+
+    .pergunta-topo {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0.875rem 1rem;
+        gap: 1rem;
+    }
+
+    .pergunta-info { flex: 1; }
+
+    .status-badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        margin-bottom: 0.4rem;
+    }
+
+    .status-badge.status-pendente    { background: #fef3c7; color: #92400e; }
+    .status-badge.status-emestudo   { background: #dbeafe; color: #1e40af; }
+    .status-badge.status-respondida  { background: #d1fae5; color: #065f46; }
+
+    .pergunta-card h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        color: #111827;
+    }
+
+    .pergunta-texto {
+        font-size: 0.82rem;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .pergunta-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .data {
+        font-size: 0.72rem;
+        color: #9ca3af;
+    }
+
+    .reflexoes-count {
+        font-size: 0.72rem;
+        color: #6366f1;
+        font-weight: 600;
+    }
+
+    .chevron {
+        font-size: 0.65rem;
+        color: #9ca3af;
+    }
+
+    .pergunta-detalhe {
+        border-top: 1px solid #f3f4f6;
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: 0 0 0.5rem 0.5rem;
+    }
+
+    .reflexoes-lista h4, .form-reflexao h4 {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .reflexao-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .reflexao-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.4rem;
+    }
+
+    .reflexao-header strong { font-size: 0.85rem; color: #111827; }
+    .reflexao-data { font-size: 0.7rem; color: #9ca3af; }
+
+    .reflexao-texto, .reflexao-aplicacao {
+        font-size: 0.8rem;
+        color: #374151;
+        margin: 0.25rem 0;
+        line-height: 1.5;
+    }
+
+    .reflexao-nova-pergunta {
+        font-size: 0.78rem;
+        color: #6366f1;
+        margin: 0.4rem 0 0 0;
+        font-style: italic;
+    }
+
+    .acoes {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-acao {
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-avancar  { background: #6366f1; color: white; }
+    .btn-avancar:hover { background: #4f46e5; }
+    .btn-reflexao { background: #f3f4f6; color: #374151; }
+    .btn-reflexao:hover { background: #e5e7eb; }
+
+    .form-reflexao {
+        margin-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1rem;
+    }
+
+    .campo {
+        margin-bottom: 0.75rem;
+    }
+
+    .campo label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.3rem;
+    }
+
+    .campo input, .campo textarea {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.82rem;
+        color: #111827;
+        background: white;
+        box-sizing: border-box;
+        resize: vertical;
+    }
+
+    .campo input:focus, .campo textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+    }
+
+    .obrigatorio { color: #ef4444; }
+    .opcional { color: #9ca3af; font-weight: 400; }
+
+    .form-acoes {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .btn-salvar {
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.45rem 1rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-salvar:hover { background: #4f46e5; }
+
+    .btn-cancelar {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        padding: 0.45rem 1rem;
+        font-size: 0.82rem;
+        cursor: pointer;
+    }
+
+    .btn-cancelar:hover { background: #f9fafb; }
+
+    .erro {
+        color: #ef4444;
+        font-size: 0.78rem;
+        margin: 0.25rem 0;
+    }
+
+    .vazio {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #9ca3af;
+    }
+
+    .vazio p { margin: 0 0 0.5rem 0; }
+    .vazio-dica { font-size: 0.82rem; font-style: italic; }
+
+    .erro-bloco {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.82rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Skeleton */
+    @@keyframes shimmer {
+        0%   { background-position: -600px 0; }
+        100% { background-position:  600px 0; }
+    }
+
+    .skeleton-lista { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .skeleton-item {
+        border: 1px solid #f3f4f6;
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .skeleton-bar {
+        height: 12px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 600px 100%;
+        animation: shimmer 1.4s infinite linear;
+    }
+
+    .skeleton-bar.w-30 { width: 30%; }
+    .skeleton-bar.w-60 { width: 60%; }
+    .skeleton-bar.w-90 { width: 90%; }
+
+    @@media (max-width: 600px) {
+        .perguntas-header { flex-direction: column; }
+        .btn-nova { width: 100%; text-align: center; }
+        .pergunta-topo { flex-direction: column; }
+        .pergunta-meta { flex-direction: row; align-items: center; }
+    }
+</style>
+
+@code {
+    private bool _carregando = true;
+    private bool _formAberto = false;
+    private Guid? _perguntaAberta = null;
+    private Guid? _reflexaoAbertaParaId = null;
+    private StatusPergunta? _filtroAtivo = null;
+    private string _erroPergunta = string.Empty;
+    private string _erroReflexao = string.Empty;
+    private string _erroCarregamento = string.Empty;
+
+    private List<PerguntaBiblica> _todasPerguntas = [];
+    private List<PerguntaBiblica> _perguntasFiltradas = [];
+    private Dictionary<StatusPergunta, int> _contagens = new();
+    private Dictionary<Guid, List<ReflexaoBiblica>> _reflexoesPorPergunta = new();
+
+    private static readonly StatusPergunta?[] _todosStatus =
+        [null, StatusPergunta.Pendente, StatusPergunta.EmEstudo, StatusPergunta.Respondida];
+
+    private NovaPerguntaForm _novaPergunta = new();
+    private NovaReflexaoForm _novaReflexao = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarPerguntas();
+    }
+
+    private async Task CarregarPerguntas()
+    {
+        _carregando = true;
+        _erroCarregamento = string.Empty;
+
+        try
+        {
+            _todasPerguntas = await Db.PerguntasBiblicas
+                .OrderByDescending(p => p.CriadoEm)
+                .ToListAsync();
+
+            _contagens = _todasPerguntas
+                .GroupBy(p => p.Status)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            AplicarFiltro();
+        }
+        catch (Exception ex)
+        {
+            _erroCarregamento = $"Erro ao carregar perguntas: {ex.Message}";
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+
+    private async Task CarregarReflexoes(Guid perguntaId)
+    {
+        if (_reflexoesPorPergunta.ContainsKey(perguntaId)) return;
+
+        var reflexoes = await Db.ReflexoesBiblicas
+            .Where(r => r.PerguntaBiblicaId == perguntaId)
+            .OrderBy(r => r.CriadoEm)
+            .ToListAsync();
+
+        _reflexoesPorPergunta[perguntaId] = reflexoes;
+    }
+
+    private void AplicarFiltro()
+    {
+        _perguntasFiltradas = _filtroAtivo == null
+            ? _todasPerguntas
+            : _todasPerguntas.Where(p => p.Status == _filtroAtivo).ToList();
+    }
+
+    private void FiltrarPor(StatusPergunta? status)
+    {
+        _filtroAtivo = status;
+        AplicarFiltro();
+    }
+
+    private async Task ToggleDetalhe(Guid id)
+    {
+        if (_perguntaAberta == id)
+        {
+            _perguntaAberta = null;
+        }
+        else
+        {
+            _perguntaAberta = id;
+            await CarregarReflexoes(id);
+        }
+        _reflexaoAbertaParaId = null;
+        _erroReflexao = string.Empty;
+    }
+
+    private void AbrirReflexao(Guid id)
+    {
+        _reflexaoAbertaParaId = id;
+        _novaReflexao = new();
+        _erroReflexao = string.Empty;
+    }
+
+    private void FecharReflexao()
+    {
+        _reflexaoAbertaParaId = null;
+        _erroReflexao = string.Empty;
+    }
+
+    private void AbrirFormulario()
+    {
+        _formAberto = true;
+        _novaPergunta = new();
+        _erroPergunta = string.Empty;
+    }
+
+    private void FecharFormulario()
+    {
+        _formAberto = false;
+        _erroPergunta = string.Empty;
+    }
+
+    private async Task SalvarPergunta()
+    {
+        _erroPergunta = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_novaPergunta.Titulo))
+        {
+            _erroPergunta = "Título é obrigatório.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_novaPergunta.Texto))
+        {
+            _erroPergunta = "A pergunta é obrigatória.";
+            return;
+        }
+
+        var pergunta = PerguntaBiblica.Criar(_novaPergunta.Titulo.Trim(), _novaPergunta.Texto.Trim());
+        Db.PerguntasBiblicas.Add(pergunta);
+        await Db.SaveChangesAsync();
+
+        _formAberto = false;
+        await CarregarPerguntas();
+    }
+
+    private async Task AvancarStatus(Guid id)
+    {
+        var pergunta = _todasPerguntas.FirstOrDefault(p => p.Id == id);
+        if (pergunta == null) return;
+
+        pergunta.AvancarStatus();
+        await Db.SaveChangesAsync();
+        AplicarFiltro();
+    }
+
+    private async Task SalvarReflexao(Guid perguntaId)
+    {
+        _erroReflexao = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_novaReflexao.Titulo))
+        {
+            _erroReflexao = "Título é obrigatório.";
+            return;
+        }
+
+        var reflexao = ReflexaoBiblica.Criar(
+            perguntaId,
+            _novaReflexao.Titulo.Trim(),
+            string.IsNullOrWhiteSpace(_novaReflexao.Explicacao)       ? null : _novaReflexao.Explicacao.Trim(),
+            string.IsNullOrWhiteSpace(_novaReflexao.AplicacaoPratica) ? null : _novaReflexao.AplicacaoPratica.Trim(),
+            string.IsNullOrWhiteSpace(_novaReflexao.PerguntaReflexao) ? null : _novaReflexao.PerguntaReflexao.Trim()
+        );
+
+        Db.ReflexoesBiblicas.Add(reflexao);
+        await Db.SaveChangesAsync();
+
+        _reflexoesPorPergunta.Remove(perguntaId);
+        await CarregarReflexoes(perguntaId);
+
+        _reflexaoAbertaParaId = null;
+    }
+
+    private static string LabelStatus(StatusPergunta? status) => status switch
+    {
+        null                        => "Todas",
+        StatusPergunta.Pendente     => "Pendente",
+        StatusPergunta.EmEstudo     => "Em Estudo",
+        StatusPergunta.Respondida   => "Respondida",
+        _                           => status.ToString()!
+    };
+
+    private class NovaPerguntaForm
+    {
+        public string Titulo { get; set; } = string.Empty;
+        public string Texto  { get; set; } = string.Empty;
+    }
+
+    private class NovaReflexaoForm
+    {
+        public string Titulo            { get; set; } = string.Empty;
+        public string Explicacao        { get; set; } = string.Empty;
+        public string AplicacaoPratica  { get; set; } = string.Empty;
+        public string PerguntaReflexao  { get; set; } = string.Empty;
+    }
+}

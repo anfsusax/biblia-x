@@ -1,5 +1,6 @@
-using ConhecimentoBiblico.Domain.Ensino;
 using ConhecimentoBiblico.Domain.Conhecimento;
+using ConhecimentoBiblico.Domain.Ensino;
+using ConhecimentoBiblico.Domain.Ensino.Enums;
 using ConhecimentoBiblico.Infrastructure.Data.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,6 +16,8 @@ public class PerguntaBiblicaConfiguracao : IEntityTypeConfiguration<PerguntaBibl
 
         builder.Property(p => p.Titulo).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Pergunta).IsRequired().HasMaxLength(500);
+        builder.Property(p => p.Status).IsRequired();
+        builder.Property(p => p.CriadoEm).IsRequired();
 
         builder.HasMany(p => p.ElementosRelacionados)
             .WithMany()
@@ -36,9 +39,11 @@ public class PerguntaBiblicaConfiguracao : IEntityTypeConfiguration<PerguntaBibl
                 }
             );
 
+        var dataSeed = new DateTime(2026, 6, 13, 0, 0, 0, DateTimeKind.Utc);
+
         builder.HasData(
-            new { Id = DadosIniciais.IdPerguntaJonas,     Titulo = "Jonas e a Ressurreição", Pergunta = "Por que Jesus citou Jonas?" },
-            new { Id = DadosIniciais.IdPerguntaCasamento, Titulo = "O Que é Casamento?",     Pergunta = "O que a Bíblia ensina sobre casamento?" }
+            new { Id = DadosIniciais.IdPerguntaJonas,     Titulo = "Jonas e a Ressurreição", Pergunta = "Por que Jesus citou Jonas?",               Status = StatusPergunta.Pendente, CriadoEm = dataSeed },
+            new { Id = DadosIniciais.IdPerguntaCasamento, Titulo = "O Que é Casamento?",     Pergunta = "O que a Bíblia ensina sobre casamento?",   Status = StatusPergunta.Pendente, CriadoEm = dataSeed }
         );
     }
 }

@@ -1,0 +1,258 @@
+# DOMINIOS_E_RELACIONAMENTOS.md
+
+# Objetivo
+
+Definir os blocos fundamentais do conhecimento bíblico.
+
+Esses domínios representam os elementos mínimos necessários para compreender a narrativa bíblica.
+
+---
+
+# Domínio: Pessoa
+
+## Definição
+
+Indivíduos que participam da narrativa bíblica.
+
+## Responsabilidade
+
+Representar agentes que executam ações, recebem ensinamentos, cumprem profecias ou influenciam eventos.
+
+## Exemplos
+
+* Jesus
+* Maria
+* José
+* João Batista
+* Pedro
+* Paulo
+* Moisés
+
+## Dependências
+
+Nenhuma.
+
+## Relacionamentos Possíveis
+
+Pessoa -> participou de -> Evento
+
+Pessoa -> ensinou -> Ensino
+
+Pessoa -> recebeu -> Ensino
+
+Pessoa -> esteve em -> Lugar
+
+Pessoa -> cumpriu -> Profecia
+
+Pessoa -> conheceu -> Pessoa
+
+Pessoa -> enviou -> Pessoa
+
+---
+
+# Domínio: Evento
+
+## Definição
+
+Ocorrência relevante dentro da narrativa bíblica.
+
+## Responsabilidade
+
+Representar acontecimentos que alteram o curso da história.
+
+## Exemplos
+
+* Nascimento de Jesus
+* Batismo de Jesus
+* Tentação no Deserto
+* Crucificação
+* Ressurreição
+
+## Dependências
+
+Pode envolver Pessoas, Lugares, Profecias e Ensinos.
+
+## Relacionamentos Possíveis
+
+Evento -> ocorreu em -> Lugar
+
+Evento -> envolveu -> Pessoa
+
+Evento -> cumpriu -> Profecia
+
+Evento -> originou -> Evento
+
+Evento -> gerou -> Consequência
+
+---
+
+# Domínio: Lugar
+
+## Definição
+
+Local geográfico relacionado à narrativa bíblica.
+
+## Responsabilidade
+
+Fornecer contexto espacial para eventos e personagens.
+
+## Exemplos
+
+* Belém
+* Nazaré
+* Jerusalém
+* Mar da Galileia
+
+## Dependências
+
+Nenhuma.
+
+## Relacionamentos Possíveis
+
+Lugar -> foi cenário de -> Evento
+
+Lugar -> foi visitado por -> Pessoa
+
+Lugar -> está relacionado a -> Conceito
+
+---
+
+# Domínio: Conceito
+
+## Definição
+
+Ideias centrais presentes nas Escrituras.
+
+## Responsabilidade
+
+Representar temas que conectam múltiplos eventos, pessoas e ensinamentos.
+
+## Exemplos
+
+* Fé
+* Graça
+* Salvação
+* Reino de Deus
+* Arrependimento
+
+## Dependências
+
+Pode surgir de Ensinos, Eventos ou Profecias.
+
+## Relacionamentos Possíveis
+
+Conceito -> explicado por -> Ensino
+
+Conceito -> observado em -> Evento
+
+Conceito -> exemplificado por -> Pessoa
+
+Conceito -> relacionado a -> Conceito
+
+---
+
+# Domínio: Ensino
+
+## Definição
+
+Instruções, orientações ou revelações transmitidas dentro da narrativa bíblica.
+
+## Responsabilidade
+
+Registrar aquilo que foi ensinado.
+
+## Especializações
+
+* Parábola
+* Sermão
+* Discurso
+
+## Exemplos
+
+* Sermão do Monte
+* Parábola do Semeador
+* Grande Comissão
+
+## Dependências
+
+Normalmente possui um autor e um contexto.
+
+## Relacionamentos Possíveis
+
+Ensino -> foi ensinado por -> Pessoa
+
+Ensino -> explica -> Conceito
+
+Ensino -> ocorreu durante -> Evento
+
+Ensino -> referencia -> Profecia
+
+---
+
+# Domínio: Profecia
+
+## Definição
+
+Declaração profética registrada nas Escrituras.
+
+## Responsabilidade
+
+Conectar promessa e cumprimento.
+
+## Exemplos
+
+* Nascimento do Messias
+* Sofrimento do Servo
+* Entrada em Jerusalém
+
+## Dependências
+
+Pode apontar para Pessoas, Eventos ou Conceitos.
+
+## Relacionamentos Possíveis
+
+Profecia -> aponta para -> Pessoa
+
+Profecia -> aponta para -> Evento
+
+Profecia -> reforça -> Conceito
+
+Profecia -> foi cumprida em -> Evento
+
+---
+
+# Catálogo Inicial de Relacionamentos
+
+Pessoa -> participou de -> Evento
+
+Pessoa -> ensinou -> Ensino
+
+Pessoa -> recebeu -> Ensino
+
+Pessoa -> cumpriu -> Profecia
+
+Pessoa -> esteve em -> Lugar
+
+Evento -> ocorreu em -> Lugar
+
+Evento -> envolveu -> Pessoa
+
+Evento -> cumpriu -> Profecia
+
+Evento -> originou -> Evento
+
+Conceito -> explicado por -> Ensino
+
+Conceito -> observado em -> Evento
+
+Conceito -> exemplificado por -> Pessoa
+
+Ensino -> foi ensinado por -> Pessoa
+
+Ensino -> explica -> Conceito
+
+Profecia -> aponta para -> Pessoa
+
+Profecia -> aponta para -> Evento
+
+Profecia -> foi cumprida em -> Evento
